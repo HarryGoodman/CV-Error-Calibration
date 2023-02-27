@@ -2,6 +2,9 @@ import argparse
 
 from typing import List
 
+from src.Inference import Inference
+
+
 class ArgumentParser(argparse.ArgumentParser):
     """
     Argument parser used for this Calibration Script
@@ -18,9 +21,8 @@ class ArgumentParser(argparse.ArgumentParser):
             usage=f"python test.py data [--model {{ {', '.join(model_size)} }}]",
         )
         self.add_argument("data")
-        self.add_argument(
-            "--model", choices=model_size, default=default_model_size
-        )
+        self.add_argument("--model", choices=model_size, default=default_model_size)
+
 
 model_size = ["tiny", "small", "base", "large"]
 default_model_size = "tiny"
@@ -32,5 +34,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print(args.data)
-    print(args.model)
+    inf = Inference(data_path=args.data, model_size=args.model)
+
+    inf.infer()
+
