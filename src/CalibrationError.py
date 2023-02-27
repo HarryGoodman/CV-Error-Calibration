@@ -95,17 +95,16 @@ class CalibrationError:
 
         df = pd.DataFrame({"x": x_axis, "ECE":self.ce_bin})
 
-        plt.figure(figsize = (10,7))
-        plt.xticks(rotation=45)
+        plt.clf()
 
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
-        sns.set(rc={"figure.figsize": (15, 8)})
+        sns.set(rc={"figure.figsize": (15, 10)})
         
         ce_fig = sns.barplot(data=df, x="x", y="ECE")
         ce_fig.set_title("Calibration Error");
 
         fig = ce_fig.get_figure()
         if self.save_png:
-            fig.savefig(self.save_path + "calibration_graph.png", dpi=400)
+            fig.savefig(self.save_path + "calibration_graph.png", dpi=400,format="png")
         else:
             fig.show()
