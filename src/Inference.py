@@ -97,3 +97,11 @@ class Inference:
             The confidence levels (preserving order of inference)
         """
         return self.confidences
+
+    def get_class_labels(self) -> List[str]:
+        """
+        Get the class labels (produced by ImageFolder).
+        Returns:
+            List of the class labels (preserving order of index)
+        """
+        return self.dataset.classes
