@@ -6,6 +6,7 @@ from torch import classes
 
 from src.Inference import Inference
 from src.ConfusionMatrix import ConfusionMatrix
+from src.CalibrationError import CalibrationError
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -38,16 +39,26 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     inf = Inference(data_path=args.data, model_size=args.model)
-
     inf.infer()
 
     cm = ConfusionMatrix(
         predictions=inf.get_predictions(),
-        targets= inf.get_true_target(),
-        classes = inf.get_class_labels(),
-        save_path = args.data + "results/",
-        save_png = True
+        targets=inf.get_true_target(),
+        classes=inf.get_class_labels(),
+        save_path=args.data + "results/",
+        save_png=True,
     )
-
     cm.plot_conf_matrix()
+
+    ce = CalibrationError(
+        predictions=inf.get_predictions(),
+        confidences=inf.get_confidences(),
+        accuracies=inf.get_accuracies(),
+        targets=inf.get_true_target(),
+        save_path=args.data + "results/",
+        save_png=True,
+        num_bins=10,
+    )
+    ce.produce_results()
+
 
