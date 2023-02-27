@@ -2,6 +2,12 @@ import torch
 from torchvision import models
 from torchvision import datasets
 
+from tqdm import tqdm
+
+from typing import Tuple, List
+from torch import Tensor
+
+
 class Inference:
     def __init__(self, data_path: str, model_size: str) -> None:
         # Model Size
@@ -24,22 +30,39 @@ class Inference:
         )
         self.model.eval()
 
-        # Confindence and Predictions
-        self.confidences = self.predictions = []
-        
+        # Confindences, Predictions and Accuracy
+        self.confidences = []
+        self.predictions = []
+        self.accuracies = []
+
+    def _calibration_components_compute(
+        self,
+        preds: Tensor,
+        target: Tensor
+    ) -> Tuple[List[float], List[int], List[bool]]:
+        confidence, prediction = preds.max(dim=1)
+        accuracy = prediction.eq(target)
+        return confidence.float(), prediction, accuracy
 
     def infer(self) -> None:
-        for data, _ in self.dataset:
+
+
+        for data, target in tqdm(self.dataset):
             data = data.unsqueeze(0)
             with torch.no_grad():
-                logits = self.model(data)
-                softmax = torch.exp(logits) / torch.sum(torch.exp(logits))
-                output = torch.max(softmax, dim=-1)
+                output = self.model(data)
+                softmax = torch.exp(output) / torch.sum(torch.exp(output))
+                confidence, prediction, accuracy = self._calibration_components_compute(
+                    preds=softmax,
+                    target=target
+                )
 
-            confidence = output.values.item()
             self.confidences.append(confidence)
-
-            prediction = output.indices.item()
             self.predictions.append(prediction)
+            self.accuracies.append(accuracy)
 
-        print(self.confidences)
+        self.confidences = torch.cat(self.confidences)
+        self.predictions = torch.cat(self.predictions)
+        self.accuracies = torch.cat(self.accuracies)
+
+
