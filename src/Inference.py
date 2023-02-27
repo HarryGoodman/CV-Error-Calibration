@@ -66,3 +66,34 @@ class Inference:
         self.accuracies = torch.cat(self.accuracies)
 
 
+    def get_true_target(self) -> Tensor:
+        """
+        Get the target labels.
+        Returns:
+            The target labels (preserving order of inference)
+        """
+        return self.dataset.targets
+
+    def get_predicted_target(self) -> Tensor:
+        """
+        Get the predicted labels.
+        Returns:
+            The predicted labels (preserving order of inference)
+        """
+        return self.predictions
+
+    def get_confidences(self) -> Tensor:
+        """
+        Get the confidences of each prediction.
+        Returns:
+            The confidence levels (preserving order of inference)
+        """
+        return self.confidences
+
+    def get_accuracies(self) -> Tensor:
+        """
+        Get the accuracy levels of each prediction.
+        Returns:
+            The confidence levels (preserving order of inference)
+        """
+        return self.confidences
