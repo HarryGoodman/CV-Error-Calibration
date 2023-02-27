@@ -45,6 +45,7 @@ class ConfusionMatrix:
     def plot_conf_matrix(self) -> None:
         self.generate_conf_matrix()
         with pd.option_context("display.max_rows", None, "display.max_columns", None):
+            print("Confusion Matrix:\n")
             print(self.conf_matrix)
 
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
