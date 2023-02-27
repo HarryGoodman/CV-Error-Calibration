@@ -1,11 +1,12 @@
 import torch
+from torch import Tensor
+
 from torchvision import models
 from torchvision import datasets
 
 from tqdm import tqdm
-
 from typing import Tuple, List
-from torch import Tensor
+
 
 
 class Inference:
@@ -72,9 +73,9 @@ class Inference:
         Returns:
             The target labels (preserving order of inference)
         """
-        return self.dataset.targets
+        return Tensor(self.dataset.targets)
 
-    def get_predicted_target(self) -> Tensor:
+    def get_predictions(self) -> Tensor:
         """
         Get the predicted labels.
         Returns:
@@ -105,3 +106,11 @@ class Inference:
             List of the class labels (preserving order of index)
         """
         return self.dataset.classes
+
+    def get_number_of_classes(self) -> int:
+        """
+        Get the number of classes (produced by ImageFolder).
+        Returns:
+            number of class labels
+        """
+        return len(self.dataset.classes)
