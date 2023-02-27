@@ -2,7 +2,10 @@ import argparse
 
 from typing import List
 
+from torch import classes
+
 from src.Inference import Inference
+from src.ConfusionMatrix import ConfusionMatrix
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -37,4 +40,13 @@ if __name__ == "__main__":
     inf = Inference(data_path=args.data, model_size=args.model)
 
     inf.infer()
+
+    cm = ConfusionMatrix(
+        predictions=inf.get_predictions(),
+        targets= inf.get_true_target(),
+        classes = inf.get_class_labels(),
+        save_path = args.data + "results/"
+    )
+
+    cm.plot_conf_matrix()
 
