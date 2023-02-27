@@ -97,7 +97,7 @@ class Inference:
         Returns:
             The confidence levels (preserving order of inference)
         """
-        return self.confidences
+        return self.accuracies
 
     def get_class_labels(self) -> List[str]:
         """
