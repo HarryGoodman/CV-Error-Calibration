@@ -78,4 +78,34 @@ class CalibrationError:
         return ce.tolist()
 
 
+    def produce_results(self) -> None:
+        with torch.no_grad():
+            self._complete_binning()
 
+        self.ce_bin = torch.abs(self.acc_bin - self.conf_bin)
+
+        self.ece = self._calibration_error_compute(norm = "l1")
+        self.mce = self._calibration_error_compute(norm = "max")
+    
+        print(f"Expected Calibration Error: {str(round(self.ece,4))}")
+        print(f"Max Calibration Error: {str(round(self.mce,4))}")
+
+        x_axis = ['%.2f' % elem for elem in self.bin_boundaries.tolist()]
+        x_axis = [f'{x_axis[i]}-{x_axis[i+1]}' for i in range(len(x_axis)-1)]
+
+        df = pd.DataFrame({"x": x_axis, "ECE":self.ce_bin})
+
+        plt.figure(figsize = (10,7))
+        plt.xticks(rotation=45)
+
+        Path(self.save_path).mkdir(parents=True, exist_ok=True)
+        sns.set(rc={"figure.figsize": (15, 8)})
+        
+        ce_fig = sns.barplot(data=df, x="x", y="ECE")
+        ce_fig.set_title("Calibration Error");
+
+        fig = ce_fig.get_figure()
+        if self.save_png:
+            fig.savefig(self.save_path + "calibration_graph.png", dpi=400)
+        else:
+            fig.show()
