@@ -13,7 +13,7 @@ class ConfusionMatrix:
     def __init__(
         self,
         predictions: Tensor,
-        targets: str,
+        targets: Tensor,
         classes: List[str],
         save_path: str,
         save_png: bool = True,
