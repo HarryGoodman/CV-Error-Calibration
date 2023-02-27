@@ -45,7 +45,8 @@ if __name__ == "__main__":
         predictions=inf.get_predictions(),
         targets= inf.get_true_target(),
         classes = inf.get_class_labels(),
-        save_path = args.data + "results/"
+        save_path = args.data + "results/",
+        save_png = True
     )
 
     cm.plot_conf_matrix()
