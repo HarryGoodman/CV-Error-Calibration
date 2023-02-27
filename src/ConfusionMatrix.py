@@ -58,6 +58,6 @@ class ConfusionMatrix:
 
         fig = conf_fig.get_figure()
         if self.save_png:
-            fig.savefig(self.save_path + "calibration_graph.png", dpi=400)
+            fig.savefig(self.save_path + "confusion_matrix.png", dpi=400)
         else:
             fig.show()
