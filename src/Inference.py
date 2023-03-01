@@ -13,15 +13,11 @@ from pathlib import Path
 from itertools import compress
 
 
-class Inference:
-    def __init__(
-        self, data_path: str, model_size: str, results_path: str, fp_folder: str
-    ) -> None:
+class TorchModel:
+    def __init__(self, data_path: str, model_size: str) -> None:
         # Model Size
         self.model_size = model_size.capitalize()
         self.data_path = os.path.abspath(data_path)
-        self.results_path = results_path
-        self.fp_path = os.path.join(self.results_path, fp_folder)
 
         # Data Transformation
         # Using the bespoke transformation of ConvNext
@@ -39,6 +35,19 @@ class Inference:
             f"convnext_{self.model_size}", num_classes=len(self.dataset.classes)
         )
         self.model.eval()
+        
+
+class Inference(TorchModel):
+    def __init__(
+        self, data_path: str, model_size: str, results_path: str, fp_folder: str
+    ) -> None:
+
+        super().__init__(data_path= data_path, model_size = model_size)
+
+        # Results path
+        self.results_path = results_path
+        self.fp_path = os.path.join(self.results_path, fp_folder)
+
 
     def infer(self) -> None:
         data, self.targets = zip(*self.dataset)
