@@ -45,7 +45,7 @@ def main(args=None):
 
     results_path = args.data + "results/"
 
-    inf = Inference(data_path=args.data, model_size=args.model)
+    inf = Inference(data_path=args.data, model_size=args.model, results_path = results_path, fp_folder= "false_positives")
     inf.infer()
 
     cm = ConfusionMatrix(

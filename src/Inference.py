@@ -7,11 +7,21 @@ from torchvision import datasets
 from tqdm import tqdm
 from typing import Tuple, List
 
+import os
+import shutil
+from pathlib import Path
+from itertools import compress
+
 
 class Inference:
-    def __init__(self, data_path: str, model_size: str) -> None:
+    def __init__(
+        self, data_path: str, model_size: str, results_path: str, fp_folder: str
+    ) -> None:
         # Model Size
         self.model_size = model_size.capitalize()
+        self.data_path = os.path.abspath(data_path)
+        self.results_path = results_path
+        self.fp_path = os.path.join(self.results_path, fp_folder)
 
         # Data Transformation
         # Using the bespoke transformation of ConvNext
@@ -40,9 +50,28 @@ class Inference:
             self.class_probs = torch.exp(output) / torch.sum(torch.exp(output))
 
         self.confidences, self.predictions = self.class_probs.max(dim=1)
-        self.accuracies = self.predictions.eq(self.targets)
+        self.accuracies = Tensor(self.predictions.eq(self.targets))
         self.confidences = self.confidences.float()
 
+        fp_classes = list(compress(self.dataset.targets, torch.logical_not(self.accuracies).tolist()))
+        class_key = dict((v, k) for k, v in self.dataset.class_to_idx.items())
+        fp_classes = [class_key.get(item, item) for item in fp_classes]
+
+        file_paths, _ = zip(*self.dataset.imgs)
+        fp_file_paths = list(compress(file_paths, torch.logical_not(self.accuracies).tolist()))
+        fp_file_name = [os.path.basename(file_x) for file_x in fp_file_paths]
+
+        fp_save_path = [
+            os.path.join(self.fp_path, class_x, file_x)
+            for class_x, file_x in zip(fp_classes, fp_file_name)
+        ]
+
+        for subfolder in self.dataset.classes:
+            subfolder_path = os.path.join(self.fp_path, subfolder)
+            Path(subfolder_path).mkdir(parents=True, exist_ok=True)
+
+        for file_path, save_path in zip(fp_file_paths, fp_save_path):
+            _ = shutil.copy2(file_path, save_path)
 
     @property
     def num_classes(self) -> int:
