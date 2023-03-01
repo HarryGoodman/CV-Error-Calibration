@@ -27,12 +27,7 @@ class CalibrationError:
         self.save_path = save_path
         self.save_png = save_png
         self.num_bins = num_bins
-        self.acc_bin=None
-        self.conf_bin=None
-        self.prop_bin=None
-        self.ce_bin = None
-        self.ece = None
-        self.mce = None
+
 
         self.bin_boundaries = torch.linspace(0, 1, self.num_bins + 1, dtype=torch.float)
 
@@ -48,12 +43,9 @@ class CalibrationError:
 
         return met_bin
 
-    def _complete_binning(
-        self
-    ) -> Tuple[Tensor, Tensor, Tensor]:
+    def _complete_binning(self) -> Tuple[Tensor, Tensor, Tensor]:
         indices = torch.bucketize(self.confidences, self.bin_boundaries) - 1
         count_bin = torch.bincount(indices, minlength=self.num_bins).float()
-
 
         # E_i
         self.conf_bin = self._sum_by_bin(
@@ -61,15 +53,16 @@ class CalibrationError:
         )
 
         # O_i
-        self.acc_bin = self._sum_by_bin(metric=self.accuracies, index=indices, count_bin=count_bin)
+        self.acc_bin = self._sum_by_bin(
+            metric=self.accuracies, index=indices, count_bin=count_bin
+        )
 
         # P(i)
         self.prop_bin = torch.nan_to_num(count_bin / count_bin.sum())
 
     def _calibration_error_compute(self, norm: str = "l1") -> Tuple[Tensor, Tensor]:
-        """
-        """
-        
+        """ """
+
         if norm == "l1":
             ce = torch.sum(self.ce_bin * self.prop_bin)
         elif norm == "max":
@@ -77,34 +70,37 @@ class CalibrationError:
 
         return ce.tolist()
 
-
     def produce_results(self) -> None:
         with torch.no_grad():
             self._complete_binning()
 
         self.ce_bin = torch.abs(self.acc_bin - self.conf_bin)
 
-        self.ece = self._calibration_error_compute(norm = "l1")
-        self.mce = self._calibration_error_compute(norm = "max")
-    
+        self.ece = self._calibration_error_compute(norm="l1")
+        self.mce = self._calibration_error_compute(norm="max")
+
         print(f"Expected Calibration Error: {str(round(self.ece,4))}")
         print(f"Max Calibration Error: {str(round(self.mce,4))}")
 
-        x_axis = ['%.2f' % elem for elem in self.bin_boundaries.tolist()]
-        x_axis = [f'{x_axis[i]}-{x_axis[i+1]}' for i in range(len(x_axis)-1)]
+        x_axis = ["%.2f" % elem for elem in self.bin_boundaries.tolist()]
+        x_axis = [f"{x_axis[i]}-{x_axis[i+1]}" for i in range(len(x_axis) - 1)]
 
-        df = pd.DataFrame({"x": x_axis, "ECE":self.ce_bin})
+        df = pd.DataFrame({"x": x_axis, "ECE": self.ce_bin * self.prop_bin})
 
-        plt.clf()
+        
 
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
+
+        plt.clf()
         sns.set(rc={"figure.figsize": (15, 10)})
-        
+
         ce_fig = sns.barplot(data=df, x="x", y="ECE")
-        ce_fig.set_title("Calibration Error");
+        ce_fig.set_title("Calibration Error")
 
         fig = ce_fig.get_figure()
         if self.save_png:
-            fig.savefig(self.save_path + "calibration_graph.png", dpi=400,format="png")
+            fig.savefig(self.save_path + "calibration_graph.png", dpi=400, format="png")
         else:
             fig.show()
+
+
