@@ -62,3 +62,10 @@ class Inference:
         """
         return self.dataset.classes
 
+    @property
+    def fp_class_probs(self) -> Tensor:
+        return self.class_probs[torch.logical_not(self.accuracies)]
+
+    @property
+    def fp_target(self) -> Tensor:
+        return Tensor(self.dataset.targets)[torch.logical_not(self.accuracies)]
