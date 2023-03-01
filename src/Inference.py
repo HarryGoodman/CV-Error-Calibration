@@ -8,7 +8,6 @@ from tqdm import tqdm
 from typing import Tuple, List
 
 
-
 class Inference:
     def __init__(self, data_path: str, model_size: str) -> None:
         # Model Size
@@ -31,75 +30,31 @@ class Inference:
         )
         self.model.eval()
 
-        # Confindences, Predictions and Accuracy
-        self.confidences = []
-        self.predictions = []
-        self.accuracies = []
-
-    def _calibration_components_compute(
-        self,
-        preds: Tensor,
-        target: Tensor
-    ) -> Tuple[List[float], List[int], List[bool]]:
-        confidence, prediction = preds.max(dim=1)
-        accuracy = prediction.eq(target)
-        return confidence.float(), prediction, accuracy
-
     def infer(self) -> None:
+        data, self.targets = zip(*self.dataset)
+        self.targets = Tensor(self.targets)
+        data = torch.cat([x.unsqueeze(0) for x in data])
+
+        with torch.no_grad():
+            output = self.model(data)
+            self.class_probs = torch.exp(output) / torch.sum(torch.exp(output))
+
+        self.confidences, self.predictions = self.class_probs.max(dim=1)
+        self.accuracies = self.predictions.eq(self.targets)
+        self.confidences = self.confidences.float()
 
 
-        for data, target in tqdm(self.dataset):
-            data = data.unsqueeze(0)
-            with torch.no_grad():
-                output = self.model(data)
-                softmax = torch.exp(output) / torch.sum(torch.exp(output))
-                confidence, prediction, accuracy = self._calibration_components_compute(
-                    preds=softmax,
-                    target=target
-                )
-
-            self.confidences.append(confidence)
-            self.predictions.append(prediction)
-            self.accuracies.append(accuracy)
-
-        self.confidences = torch.cat(self.confidences)
-        self.predictions = torch.cat(self.predictions)
-        self.accuracies = torch.cat(self.accuracies)
-
-
-    def get_true_target(self) -> Tensor:
+    @property
+    def num_classes(self) -> int:
         """
-        Get the target labels.
+        Get the number of classes (produced by ImageFolder).
         Returns:
-            The target labels (preserving order of inference)
+            number of class labels
         """
-        return Tensor(self.dataset.targets)
+        return len(self.dataset.classes)
 
-    def get_predictions(self) -> Tensor:
-        """
-        Get the predicted labels.
-        Returns:
-            The predicted labels (preserving order of inference)
-        """
-        return self.predictions
-
-    def get_confidences(self) -> Tensor:
-        """
-        Get the confidences of each prediction.
-        Returns:
-            The confidence levels (preserving order of inference)
-        """
-        return self.confidences
-
-    def get_accuracies(self) -> Tensor:
-        """
-        Get the accuracy levels of each prediction.
-        Returns:
-            The confidence levels (preserving order of inference)
-        """
-        return self.accuracies
-
-    def get_class_labels(self) -> List[str]:
+    @property
+    def class_labels(self) -> List[str]:
         """
         Get the class labels (produced by ImageFolder).
         Returns:
@@ -107,10 +62,3 @@ class Inference:
         """
         return self.dataset.classes
 
-    def get_number_of_classes(self) -> int:
-        """
-        Get the number of classes (produced by ImageFolder).
-        Returns:
-            number of class labels
-        """
-        return len(self.dataset.classes)
