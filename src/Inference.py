@@ -7,12 +7,21 @@ from torchvision import datasets
 from tqdm import tqdm
 from typing import Tuple, List
 
+import os
+import shutil
+from pathlib import Path
+from itertools import compress
 
 
 class Inference:
-    def __init__(self, data_path: str, model_size: str) -> None:
+    def __init__(
+        self, data_path: str, model_size: str, results_path: str, fp_folder: str
+    ) -> None:
         # Model Size
         self.model_size = model_size.capitalize()
+        self.data_path = os.path.abspath(data_path)
+        self.results_path = results_path
+        self.fp_path = os.path.join(self.results_path, fp_folder)
 
         # Data Transformation
         # Using the bespoke transformation of ConvNext
@@ -31,75 +40,50 @@ class Inference:
         )
         self.model.eval()
 
-        # Confindences, Predictions and Accuracy
-        self.confidences = []
-        self.predictions = []
-        self.accuracies = []
-
-    def _calibration_components_compute(
-        self,
-        preds: Tensor,
-        target: Tensor
-    ) -> Tuple[List[float], List[int], List[bool]]:
-        confidence, prediction = preds.max(dim=1)
-        accuracy = prediction.eq(target)
-        return confidence.float(), prediction, accuracy
-
     def infer(self) -> None:
+        data, self.targets = zip(*self.dataset)
+        self.targets = Tensor(self.targets)
+        data = torch.cat([x.unsqueeze(0) for x in data])
 
+        with torch.no_grad():
+            output = self.model(data)
+            self.class_probs = torch.exp(output) / torch.sum(torch.exp(output))
 
-        for data, target in tqdm(self.dataset):
-            data = data.unsqueeze(0)
-            with torch.no_grad():
-                output = self.model(data)
-                softmax = torch.exp(output) / torch.sum(torch.exp(output))
-                confidence, prediction, accuracy = self._calibration_components_compute(
-                    preds=softmax,
-                    target=target
-                )
+        self.confidences, self.predictions = self.class_probs.max(dim=1)
+        self.accuracies = Tensor(self.predictions.eq(self.targets))
+        self.confidences = self.confidences.float()
 
-            self.confidences.append(confidence)
-            self.predictions.append(prediction)
-            self.accuracies.append(accuracy)
+        fp_classes = list(compress(self.dataset.targets, torch.logical_not(self.accuracies).tolist()))
+        class_key = dict((v, k) for k, v in self.dataset.class_to_idx.items())
+        fp_classes = [class_key.get(item, item) for item in fp_classes]
 
-        self.confidences = torch.cat(self.confidences)
-        self.predictions = torch.cat(self.predictions)
-        self.accuracies = torch.cat(self.accuracies)
+        file_paths, _ = zip(*self.dataset.imgs)
+        fp_file_paths = list(compress(file_paths, torch.logical_not(self.accuracies).tolist()))
+        fp_file_name = [os.path.basename(file_x) for file_x in fp_file_paths]
 
+        fp_save_path = [
+            os.path.join(self.fp_path, class_x, file_x)
+            for class_x, file_x in zip(fp_classes, fp_file_name)
+        ]
 
-    def get_true_target(self) -> Tensor:
+        for subfolder in self.dataset.classes:
+            subfolder_path = os.path.join(self.fp_path, subfolder)
+            Path(subfolder_path).mkdir(parents=True, exist_ok=True)
+
+        for file_path, save_path in zip(fp_file_paths, fp_save_path):
+            _ = shutil.copy2(file_path, save_path)
+
+    @property
+    def num_classes(self) -> int:
         """
-        Get the target labels.
+        Get the number of classes (produced by ImageFolder).
         Returns:
-            The target labels (preserving order of inference)
+            number of class labels
         """
-        return Tensor(self.dataset.targets)
+        return len(self.dataset.classes)
 
-    def get_predictions(self) -> Tensor:
-        """
-        Get the predicted labels.
-        Returns:
-            The predicted labels (preserving order of inference)
-        """
-        return self.predictions
-
-    def get_confidences(self) -> Tensor:
-        """
-        Get the confidences of each prediction.
-        Returns:
-            The confidence levels (preserving order of inference)
-        """
-        return self.confidences
-
-    def get_accuracies(self) -> Tensor:
-        """
-        Get the accuracy levels of each prediction.
-        Returns:
-            The confidence levels (preserving order of inference)
-        """
-        return self.accuracies
-
-    def get_class_labels(self) -> List[str]:
+    @property
+    def class_labels(self) -> List[str]:
         """
         Get the class labels (produced by ImageFolder).
         Returns:
@@ -107,10 +91,10 @@ class Inference:
         """
         return self.dataset.classes
 
-    def get_number_of_classes(self) -> int:
-        """
-        Get the number of classes (produced by ImageFolder).
-        Returns:
-            number of class labels
-        """
-        return len(self.dataset.classes)
+    @property
+    def fp_class_probs(self) -> Tensor:
+        return self.class_probs[torch.logical_not(self.accuracies)]
+
+    @property
+    def fp_target(self) -> Tensor:
+        return Tensor(self.dataset.targets)[torch.logical_not(self.accuracies)]
