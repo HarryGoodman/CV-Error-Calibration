@@ -15,10 +15,35 @@ from src.false_postive import FalsePostiveImage
 
 class ArgumentParser(argparse.ArgumentParser):
     """
-    Argument parser used for this Calibration Script
+    A subclass of the argparse.ArgumentParser used for the Calibration Script.
+
+    Parameters:
+    model_size (List[str]): A list of strings containing the available model sizes to choose from.
+    default_model_size (str): A string representing the default model size to use if not specified.
+
+    Methods:
+    __init__(self, model_size: List[str], default_model_size: str) -> None:
+        Initializes an instance of ArgumentParser with the specified model size and default model size.
+
+        Parameters:
+        model_size (List[str]): A list of strings containing the available model sizes to choose from.
+        default_model_size (str): A string representing the default model size to use if not specified.
+
+        Returns:
+        None
     """
 
     def __init__(self, model_size: List[str,], default_model_size: str) -> None:
+        """
+        Initializes an instance of ArgumentParser with the specified model size and default model size.
+
+        Parameters:
+        model_size (List[str]): A list of strings containing the available model sizes to choose from.
+        default_model_size (str): A string representing the default model size to use if not specified.
+
+        Returns:
+        None
+        """
         super().__init__(
             description=(
                 """
@@ -40,6 +65,16 @@ default_model_size = "tiny"
 
 
 def main(args=None):
+    """
+    The main function of the Calibration Script which runs the inference, confusion matrix, calibration error and false positive
+    analysis functions.
+
+    Parameters:
+    args (Optional[Namespace]): A Namespace object containing the arguments for the Calibration Script. Defaults to None.
+
+    Returns:
+    None
+    """
     parser = ArgumentParser(
         model_size=model_size,
         default_model_size=default_model_size,
