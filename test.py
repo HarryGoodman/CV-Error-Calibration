@@ -1,4 +1,6 @@
 import argparse
+import os
+from pathlib import Path
 
 from typing import List
 
@@ -7,15 +9,41 @@ from torch import classes
 from src.Inference import Inference
 from src.ConfusionMatrix import ConfusionMatrix
 from src.CalibrationError import CalibrationError
-from src.false_postive import FalsePositive
+from src.pattern_detection import PatternDetection
+from src.false_postive import FalsePostiveImage
 
 
 class ArgumentParser(argparse.ArgumentParser):
     """
-    Argument parser used for this Calibration Script
+    A subclass of the argparse.ArgumentParser used for the Calibration Script.
+
+    Parameters:
+    model_size (List[str]): A list of strings containing the available model sizes to choose from.
+    default_model_size (str): A string representing the default model size to use if not specified.
+
+    Methods:
+    __init__(self, model_size: List[str], default_model_size: str) -> None:
+        Initializes an instance of ArgumentParser with the specified model size and default model size.
+
+        Parameters:
+        model_size (List[str]): A list of strings containing the available model sizes to choose from.
+        default_model_size (str): A string representing the default model size to use if not specified.
+
+        Returns:
+        None
     """
 
     def __init__(self, model_size: List[str,], default_model_size: str) -> None:
+        """
+        Initializes an instance of ArgumentParser with the specified model size and default model size.
+
+        Parameters:
+        model_size (List[str]): A list of strings containing the available model sizes to choose from.
+        default_model_size (str): A string representing the default model size to use if not specified.
+
+        Returns:
+        None
+        """
         super().__init__(
             description=(
                 """
@@ -37,15 +65,34 @@ default_model_size = "tiny"
 
 
 def main(args=None):
+    """
+    The main function of the Calibration Script which runs the inference, confusion matrix, calibration error and false positive
+    analysis functions.
+
+    Parameters:
+    args (Optional[Namespace]): A Namespace object containing the arguments for the Calibration Script. Defaults to None.
+
+    Returns:
+    None
+    """
     parser = ArgumentParser(
         model_size=model_size,
         default_model_size=default_model_size,
     )
     args = parser.parse_args(args)
+    args.data = os.path.abspath(args.data)
 
-    results_path = args.data + "results/"
+    results_path = os.path.join(os.path.dirname(args.data), "results", "")
+    model_path = os.path.join(os.path.dirname(args.data), "models")
 
-    inf = Inference(data_path=args.data, model_size=args.model, results_path = results_path, fp_folder= "false_positives")
+
+    inf = Inference(
+        data_path=args.data,
+        model_path = model_path,
+        model_size=args.model,
+        results_path=results_path,
+        fp_folder="false_positives",
+    )
     inf.infer()
 
     cm = ConfusionMatrix(
@@ -67,6 +114,28 @@ def main(args=None):
         num_bins=10,
     )
     ce.produce_results()
+
+    fpi = FalsePostiveImage(
+        data_path=os.path.join(
+            os.path.dirname(args.data), "results", "false_positives"
+        ),
+        model_path = model_path,
+        model_size=args.model,
+        save_path=results_path,
+        save_prefix="RGB",
+    )
+    fpi.analyse()
+
+    cp_cluster = PatternDetection(
+        fp_data=inf.fp_class_probs,
+        fp_target=inf.fp_targets,
+        class_labels=inf.dataset.class_to_idx,
+        save_path=results_path,
+        save_prefix="ClassProb",
+        save_png=True,
+    )
+    cp_cluster.cluster()
+
 
 if __name__ == "__main__":
     SystemExit(main(args=[test_folder]))
