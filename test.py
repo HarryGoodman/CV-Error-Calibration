@@ -44,9 +44,9 @@ def main(args=None):
         default_model_size=default_model_size,
     )
     args = parser.parse_args(args)
-    args.data = Path(args.data)
+    args.data = os.path.abspath(args.data)
 
-    results_path = os.path.join(args.data.parent.absolute() , "results", '')
+    results_path = os.path.join(os.path.dirname(args.data) , "results", '')
 
     inf = Inference(
         data_path=args.data,
@@ -78,6 +78,13 @@ def main(args=None):
     ce.produce_results()
 
 
+    fpi = FalsePostiveImage(
+        data_path = os.path.join(os.path.dirname(args.data) , "results", 'false_positives'), 
+        model_size= args.model, 
+        save_path = results_path,
+        save_prefix = "RGB",
+    ) 
+    fpi.analyse()
 
 if __name__ == "__main__":
     SystemExit(main(args=[test_folder]))
