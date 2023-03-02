@@ -59,7 +59,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self.add_argument("--model", choices=model_size, default=default_model_size)
 
 
-test_folder = "../CIFAR-10-images_small/test/"
+
 model_size = ["tiny", "small", "base", "large"]
 default_model_size = "tiny"
 
