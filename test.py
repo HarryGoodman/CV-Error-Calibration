@@ -9,6 +9,7 @@ from torch import classes
 from src.Inference import Inference
 from src.ConfusionMatrix import ConfusionMatrix
 from src.CalibrationError import CalibrationError
+from src.pattern_detection import PatternDetection
 from src.false_postive import FalsePostiveImage
 
 
@@ -46,7 +47,7 @@ def main(args=None):
     args = parser.parse_args(args)
     args.data = os.path.abspath(args.data)
 
-    results_path = os.path.join(os.path.dirname(args.data) , "results", '')
+    results_path = os.path.join(os.path.dirname(args.data), "results", "")
 
     inf = Inference(
         data_path=args.data,
@@ -65,7 +66,6 @@ def main(args=None):
     )
     cm.plot_conf_matrix()
 
-
     ce = CalibrationError(
         predictions=inf.predictions,
         confidences=inf.confidences,
@@ -77,14 +77,26 @@ def main(args=None):
     )
     ce.produce_results()
 
-
     fpi = FalsePostiveImage(
-        data_path = os.path.join(os.path.dirname(args.data) , "results", 'false_positives'), 
-        model_size= args.model, 
-        save_path = results_path,
-        save_prefix = "RGB",
-    ) 
+        data_path=os.path.join(
+            os.path.dirname(args.data), "results", "false_positives"
+        ),
+        model_size=args.model,
+        save_path=results_path,
+        save_prefix="RGB",
+    )
     fpi.analyse()
+
+    cp_cluster = PatternDetection(
+        fp_data=inf.fp_class_probs,
+        fp_target=inf.fp_targets,
+        class_labels=inf.class_labels,
+        save_path=results_path,
+        save_prefix="ClassProb",
+        save_png=True,
+    )
+    cp_cluster.cluster()
+
 
 if __name__ == "__main__":
     SystemExit(main(args=[test_folder]))
