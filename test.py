@@ -1,4 +1,6 @@
 import argparse
+import os
+from pathlib import Path
 
 from typing import List
 
@@ -7,7 +9,7 @@ from torch import classes
 from src.Inference import Inference
 from src.ConfusionMatrix import ConfusionMatrix
 from src.CalibrationError import CalibrationError
-from src.false_postive import FalsePositive
+from src.false_postive import FalsePostiveImage
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -42,10 +44,16 @@ def main(args=None):
         default_model_size=default_model_size,
     )
     args = parser.parse_args(args)
+    args.data = Path(args.data)
 
-    results_path = args.data + "results/"
+    results_path = os.path.join(args.data.parent.absolute() , "results", '')
 
-    inf = Inference(data_path=args.data, model_size=args.model, results_path = results_path, fp_folder= "false_positives")
+    inf = Inference(
+        data_path=args.data,
+        model_size=args.model,
+        results_path=results_path,
+        fp_folder="false_positives",
+    )
     inf.infer()
 
     cm = ConfusionMatrix(
@@ -57,6 +65,7 @@ def main(args=None):
     )
     cm.plot_conf_matrix()
 
+
     ce = CalibrationError(
         predictions=inf.predictions,
         confidences=inf.confidences,
@@ -67,6 +76,8 @@ def main(args=None):
         num_bins=10,
     )
     ce.produce_results()
+
+
 
 if __name__ == "__main__":
     SystemExit(main(args=[test_folder]))

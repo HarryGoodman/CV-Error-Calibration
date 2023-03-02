@@ -35,6 +35,30 @@ class TorchModel:
             f"convnext_{self.model_size}", num_classes=len(self.dataset.classes)
         )
         self.model.eval()
+
+        
+    @property
+    def num_classes(self) -> int:
+        """
+        Get the number of classes (produced by ImageFolder).
+        Returns:
+            number of class labels
+        """
+        return len(self.dataset.classes)
+
+    @property
+    def class_labels(self) -> List[str]:
+        """
+        Get the class labels (produced by ImageFolder).
+        Returns:
+            List of the class labels (preserving order of index)
+        """
+        return self.dataset.classes
+
+    @property
+    def targets(self) -> Tensor:
+        return Tensor(self.dataset.targets)
+
         
 
 class Inference(TorchModel):
@@ -50,8 +74,8 @@ class Inference(TorchModel):
 
 
     def infer(self) -> None:
-        data, self.targets = zip(*self.dataset)
-        self.targets = Tensor(self.targets)
+        data, _ = zip(*self.dataset)
+        # self.targets = Tensor(self.targets)
         data = torch.cat([x.unsqueeze(0) for x in data])
 
         with torch.no_grad():
@@ -81,24 +105,6 @@ class Inference(TorchModel):
 
         for file_path, save_path in zip(fp_file_paths, fp_save_path):
             _ = shutil.copy2(file_path, save_path)
-
-    @property
-    def num_classes(self) -> int:
-        """
-        Get the number of classes (produced by ImageFolder).
-        Returns:
-            number of class labels
-        """
-        return len(self.dataset.classes)
-
-    @property
-    def class_labels(self) -> List[str]:
-        """
-        Get the class labels (produced by ImageFolder).
-        Returns:
-            List of the class labels (preserving order of index)
-        """
-        return self.dataset.classes
 
     @property
     def fp_class_probs(self) -> Tensor:
