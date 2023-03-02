@@ -54,7 +54,7 @@ class PatternDetection:
 
     def cluster(self) -> None:
         self._pca(n_components= 2)
-        self._tsne(n_components = 2)
+        # self._tsne(n_components = 2)
         self._k_means(n_clusters = 3)
 
         pca_x = self.pca_values.numpy()
@@ -64,12 +64,15 @@ class PatternDetection:
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
 
         plt.clf()
+
         sns.set(rc={"figure.figsize": (15, 10)})
 
         pca_fig = sns.scatterplot(data = df, x = "x", y = "y", hue = "target", style = "cluster")
-        pca_fig.set_title("Calibration Error")
+        pca_fig.set_title("K-means Clustering")
         fig = pca_fig.get_figure()
         if self.save_png:
-            fig.savefig(os.path.join(self.save_path, self.save_prefix + "_k_means.svg"), dpi=400, format="svg")
+            fig.savefig(os.path.join(self.save_path, self.save_prefix[0] + "_k_means.svg"), dpi=400, format="svg")
         else:
             fig.show()
+
+        plt.clf()
