@@ -44,7 +44,7 @@ class FalsePostiveImage(TorchModel):
             fp_target = self.targets,
             class_labels = self.class_labels,
             save_path = self.save_path,
-            save_prefix = self.save_prefix,
+            save_prefix = self.save_prefix[0],
             save_png = self.save_png
         )
 
