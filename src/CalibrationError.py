@@ -85,7 +85,7 @@ class CalibrationError:
         x_axis = ["%.2f" % elem for elem in self.bin_boundaries.tolist()]
         x_axis = [f"{x_axis[i]}-{x_axis[i+1]}" for i in range(len(x_axis) - 1)]
 
-        df = pd.DataFrame({"x": x_axis, "ECE": self.ce_bin * self.prop_bin})
+        df = pd.DataFrame({"Confidence Bins": x_axis, "ECE": self.ce_bin * self.prop_bin})
 
         
 
@@ -94,10 +94,12 @@ class CalibrationError:
         plt.clf()
         # sns.set(rc={"figure.figsize": (15, 10)})
 
-        ce_fig = sns.barplot(data=df, x="x", y="ECE")
+        ce_fig = sns.barplot(data=df, x="Confidence Bins", y="ECE")
         ce_fig.set_title("Calibration Error")
 
         fig = ce_fig.get_figure()
+        plt.xticks(rotation=90)
+        plt.tight_layout()
         if self.save_png:
             fig.savefig(self.save_path + "calibration_graph.svg", dpi=400, format="svg")
         else:

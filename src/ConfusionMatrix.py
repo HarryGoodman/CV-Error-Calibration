@@ -57,6 +57,7 @@ class ConfusionMatrix:
         ).set_title("Confusion Matrix")
 
         fig = conf_fig.get_figure()
+        plt.tight_layout()
         if self.save_png:
             fig.savefig(self.save_path + "confusion_matrix.svg", dpi=400, format="svg")
         else:
