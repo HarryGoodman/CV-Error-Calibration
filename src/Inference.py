@@ -7,6 +7,9 @@ from torchvision import datasets
 from tqdm import tqdm
 from typing import Tuple, List
 
+import glob
+import pickle
+
 import os
 import shutil
 from pathlib import Path
@@ -31,7 +34,7 @@ class TorchModel:
         data_transform (torchvision.transforms.Compose): The set of data transformations to be applied to the images.
     """
 
-    def __init__(self, data_path: str, model_size: str) -> None:
+    def __init__(self, data_path: str, model_path:str,  model_size: str) -> None:
         """
         Initializes a TorchModel instance.
 
@@ -43,14 +46,25 @@ class TorchModel:
             None
         """
         # Model Size
-        self.model_size = model_size.capitalize()
+        self.model_size = model_size #.capitalize()
         self.data_path = os.path.abspath(data_path)
+        self.model_path = os.path.abspath(model_path)
 
         # Data Transformation
         # Using the bespoke transformation of ConvNext
-        self.data_transform = models.get_weight(
-            f"ConvNeXt_{self.model_size}_Weights.DEFAULT"
-        ).transforms
+        transform_path = glob.glob( os.path.join(self.model_path, self.model_size, "transform", "*.pickle"))
+        transform_files_num = len(transform_path)
+        if transform_files_num == 0:
+            raise ValueError("No transformation function pickle found.")
+        elif transform_files_num > 1:
+            raise ValueError("Multiple transformation function pickles found.")
+        
+        with open(transform_path[0], 'rb') as handle:
+            self.data_transform = pickle.load(handle)
+
+        # self.data_transform = models.get_weight(
+        #     f"ConvNeXt_{self.model_size}_Weights.DEFAULT"
+        # ).transforms
 
         # Data Loader
         # Using torchvison.models.ImageFolder
@@ -58,10 +72,18 @@ class TorchModel:
 
         # Model
         # Accessing ConvNext from torchvision
-        self.model = models.get_model(
-            f"convnext_{self.model_size}", num_classes=len(self.dataset.classes)
-        )
-        self.model.eval()
+        model_path = glob.glob( os.path.join(self.model_path, self.model_size, "model", "*.pt"))
+        model_files_num = len(model_path)
+        if model_files_num == 0:
+            raise ValueError("No Model .pt file found.")
+        elif model_files_num > 1:
+            raise ValueError("Multiple todel .pt files found.")
+        self.model =  torch.load(model_path[0])
+
+        # self.model = models.get_model(
+        #     f"convnext_{self.model_size}", num_classes=len(self.dataset.classes)
+        # )
+        # self.model.eval()
 
         
     @property
@@ -119,7 +141,7 @@ class Inference(TorchModel):
     """
     
     def __init__(
-        self, data_path: str, model_size: str, results_path: str, fp_folder: str
+        self, data_path: str, model_path:str, model_size: str, results_path: str, fp_folder: str
     ) -> None:
         """
         Initializes an Inference instance.
@@ -134,7 +156,7 @@ class Inference(TorchModel):
             None
         """
 
-        super().__init__(data_path= data_path, model_size = model_size)
+        super().__init__(data_path= data_path, model_path = model_path, model_size = model_size)
 
         # Results path
         self.results_path = results_path

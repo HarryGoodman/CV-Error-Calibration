@@ -83,9 +83,12 @@ def main(args=None):
     args.data = os.path.abspath(args.data)
 
     results_path = os.path.join(os.path.dirname(args.data), "results", "")
+    model_path = os.path.join(os.path.dirname(args.data), "models")
+
 
     inf = Inference(
         data_path=args.data,
+        model_path = model_path,
         model_size=args.model,
         results_path=results_path,
         fp_folder="false_positives",
@@ -116,6 +119,7 @@ def main(args=None):
         data_path=os.path.join(
             os.path.dirname(args.data), "results", "false_positives"
         ),
+        model_path = model_path,
         model_size=args.model,
         save_path=results_path,
         save_prefix="RGB",

@@ -19,7 +19,7 @@ from src.pattern_detection import PatternDetection
 
 class FalsePostiveImage(TorchModel):
     """
-    A class that performs analysis on false positive images.
+    A subclass of TorchModel that performs analysis on false positive images.
 
     Args:
         data_path (str): Path to the directory containing the false positive images.
@@ -33,6 +33,7 @@ class FalsePostiveImage(TorchModel):
     def __init__(
         self, 
         data_path: str, 
+        model_path: str,
         model_size: str, 
         save_path: str,
         save_prefix: str,
@@ -49,7 +50,7 @@ class FalsePostiveImage(TorchModel):
             save_png (bool, optional): Whether to save the plots in PNG format. Default is True.
         """
 
-        super().__init__(data_path= data_path, model_size = model_size)
+        super().__init__(data_path= data_path, model_path = model_path, model_size = model_size)
 
         # Save details
         self.save_path = save_path
