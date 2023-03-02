@@ -71,7 +71,7 @@ class PatternDetection:
         pca_fig.set_title("K-means Clustering")
         fig = pca_fig.get_figure()
         if self.save_png:
-            fig.savefig(os.path.join(self.save_path, self.save_prefix[0] + "_k_means.svg"), dpi=400, format="svg")
+            fig.savefig(os.path.join(self.save_path, self.save_prefix + "_k_means.svg"), dpi=400, format="svg")
         else:
             fig.show()
 
