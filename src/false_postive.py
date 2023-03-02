@@ -42,7 +42,7 @@ class FalsePostiveImage(TorchModel):
         pattern_detection = PatternDetection(
             fp_data = dat,
             fp_target = self.targets,
-            class_labels = self.class_labels,
+            class_labels = self.dataset.class_to_idx,
             save_path = self.save_path,
             save_prefix = self.save_prefix[0],
             save_png = self.save_png
