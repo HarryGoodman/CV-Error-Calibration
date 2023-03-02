@@ -62,9 +62,6 @@ class TorchModel:
         with open(transform_path[0], 'rb') as handle:
             self.data_transform = pickle.load(handle)
 
-        # self.data_transform = models.get_weight(
-        #     f"ConvNeXt_{self.model_size}_Weights.DEFAULT"
-        # ).transforms
 
         # Data Loader
         # Using torchvison.models.ImageFolder
@@ -80,10 +77,6 @@ class TorchModel:
             raise ValueError("Multiple todel .pt files found.")
         self.model =  torch.load(model_path[0])
 
-        # self.model = models.get_model(
-        #     f"convnext_{self.model_size}", num_classes=len(self.dataset.classes)
-        # )
-        # self.model.eval()
 
         
     @property
