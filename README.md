@@ -87,3 +87,9 @@ The does the following:
 - Identifies the false positives and save all false postive images in a seperate folder (`~/project/results/false_positves`) with the same folder structure as specified above
 - Takes the class probabilities of the false positves and uses dimensionality reduction techniques PCA and t-SNE to reduce the dimensions (down to 2) and visualise patterns in false postives.
 - Takes the RGB values of the false positves and flattens it so PCA and t-SNE can reduce the dimensions (down to 2) and visualise patterns in false postives.
+
+## Limitations
+The following are limitations of the code:
+
+- A large portion of the code is producing inference on the images. This has the potential to be completed in parralel which would increase computational time significantly. 
+- The majority of the computation is completed by Pytorch, which can be computed on a GPU (if one exists). This code does not spcify the device which calculations are completed on. 
