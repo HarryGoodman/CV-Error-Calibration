@@ -92,15 +92,16 @@ class CalibrationError:
         Path(self.save_path).mkdir(parents=True, exist_ok=True)
 
         plt.clf()
-        sns.set(rc={"figure.figsize": (15, 10)})
+        # sns.set(rc={"figure.figsize": (15, 10)})
 
         ce_fig = sns.barplot(data=df, x="x", y="ECE")
         ce_fig.set_title("Calibration Error")
 
         fig = ce_fig.get_figure()
         if self.save_png:
-            fig.savefig(self.save_path + "calibration_graph.png", dpi=400, format="png")
+            fig.savefig(self.save_path + "calibration_graph.svg", dpi=400, format="svg")
         else:
             fig.show()
 
+        plt.clf()
 

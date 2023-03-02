@@ -58,8 +58,10 @@ class ConfusionMatrix:
 
         fig = conf_fig.get_figure()
         if self.save_png:
-            fig.savefig(self.save_path + "confusion_matrix.png", dpi=400, format="png")
+            fig.savefig(self.save_path + "confusion_matrix.svg", dpi=400, format="svg")
         else:
             fig.show()
+
+        plt.clf()
 
         

@@ -58,6 +58,12 @@ class TorchModel:
     @property
     def targets(self) -> Tensor:
         return Tensor(self.dataset.targets)
+    
+    @property
+    def data(self) -> Tensor:
+        dat, _ = zip(*self.dataset)
+        dat = torch.cat([x.unsqueeze(0) for x in dat])
+        return(dat)
 
         
 
@@ -74,12 +80,10 @@ class Inference(TorchModel):
 
 
     def infer(self) -> None:
-        data, _ = zip(*self.dataset)
-        # self.targets = Tensor(self.targets)
-        data = torch.cat([x.unsqueeze(0) for x in data])
+        dat = self.data
 
         with torch.no_grad():
-            output = self.model(data)
+            output = self.model(dat)
             self.class_probs = torch.exp(output) / torch.sum(torch.exp(output))
 
         self.confidences, self.predictions = self.class_probs.max(dim=1)
