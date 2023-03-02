@@ -55,7 +55,7 @@ class ArgumentParser(argparse.ArgumentParser):
             add_help=True,
             usage=f"python test.py data [--model {{ {', '.join(model_size)} }}]",
         )
-        self.add_argument("data", default=test_folder)
+        self.add_argument("data")
         self.add_argument("--model", choices=model_size, default=default_model_size)
 
 
@@ -138,4 +138,4 @@ def main(args=None):
 
 
 if __name__ == "__main__":
-    SystemExit(main(args=[test_folder]))
+    SystemExit(main())
