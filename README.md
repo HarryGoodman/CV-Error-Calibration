@@ -91,5 +91,9 @@ The does the following:
 ## Limitations
 The following are limitations of the code:
 
-- A large portion of the code is producing inference on the images. This has the potential to be completed in parralel which would increase computational time significantly. 
+- A large portion of the code is producing inference on the images. This has the potential to be completed in parralel which would increase computational time significantly. Furthermore, I have set this script to complete inference in on batch which is clearly flawed for large test data sets. This could be overcome by using a data loader from `torch.utils`, for this project there was a restriction on what modules could be used and so this was not included. 
 - The majority of the computation is completed by Pytorch, which can be computed on a GPU (if one exists). This code does not spcify the device which calculations are completed on. 
+
+## Example
+
+A ipython notebook can be found on [colab](https://colab.research.google.com/drive/1QlEu9-3I7VklGmZ2ZN0OmL0BQeQA24T6), which outlines how to use the the script. 
